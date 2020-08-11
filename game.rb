@@ -7,7 +7,6 @@ class GhostGame
   attr_reader :players, :fragment, :dictionary
 
   def initialize(*people)
-    # @players = [player_1, player_2]
     @players = []
     people.each do |name|
       @players << Player.new(name)
@@ -23,7 +22,7 @@ class GhostGame
   end
 
   def previous_player
-    @players[1]#this will need to change
+    @players[-1]
   end
 
   def next_player!
@@ -46,18 +45,38 @@ class GhostGame
   end
 
   def deathtoll 
-    puts "#{previous_player.name}, you are the loser"
-    puts "#{current_player.name}, congratulations!"
-    puts "* * * * * * * *"
-    current_player
+    lose_round
+    puts "* * * * *"
+    puts "#{previous_player.name} you lose this round!"
+    puts "* * * * *"
+    puts
+  end
+
+  def winner_winner_winner
+    puts "     *"
+    puts "#{@players[0].name} wins!!!!!"
+    puts "* * * * * * *"
+    puts "* * * * * *"
+    puts "* * * * *"
+    puts "* * * *"
+    puts "* * *"
+    puts "* *"
+    puts "*"
   end
 
   def run
-    until current_player.losses_left == 0 || previous_player.losses_left == 0#either player gets ghost
+    until @players.one? {|player| player.losses_left > 0 }
       display_standings
       play_round
+      if players.any? {|player| player.losses_left == 0 }
+        puts "#{@players.pop.name}, you are finished."
+        puts "- - - - "
+        # debugger
+        # couldnt get that message towork sadly :/
+        # puts "Players #{@players.each {|player| print "#{player.name}, "}}, continue playing!"
+      end
     end
-    deathtoll
+    winner_winner_winner
   end
 
     def play_round
@@ -68,11 +87,7 @@ class GhostGame
       take_turn(current_player)
       next_player!
     end
-    lose
-    puts "* * * * *"
-    puts "#{@players[1].name} you lose this round!" #prevplay isnt showing up
-    puts "* * * * *"
-    puts
+    deathtoll
   end
 
   def take_turn(player)
@@ -83,7 +98,6 @@ class GhostGame
       puts
       @fragment += letter if valid_play?(letter)
       puts
-      # puts
     end
   end
 
@@ -91,7 +105,6 @@ class GhostGame
   def valid_play?(str)
     new_frag = @fragment + str
     if !ALPHA.include?(str) || str.length > 1
-      # debugger
       current_player.alert_invalid_guess
       return false
     end
@@ -103,23 +116,18 @@ class GhostGame
     dictionary.include?(frag) && (
       dictionary.none? do |word| 
         word.start_with?(frag) && word.length > frag.length
-      end #dict includes frag and no words in the dict
-      # that start w frag while being longer
+      end
     )
-    #   puts "#{current_player}, you completed the word!" 
   end
 
-  def lose
+  def lose_round
     previous_player.losses_left -= 1
     record(previous_player)
   end
 
   def record(player)
     ghost = "GHOST".split("").reverse
-    player.losses += ghost[ player.losses_left ] #string
+    player.losses += ghost[ player.losses_left ] 
   end
 
 end
-  #wd be nice to to correlate num of times player has gone and 
-# that frag's position in words of the dictionary
-  #make output look better, it's confusng
